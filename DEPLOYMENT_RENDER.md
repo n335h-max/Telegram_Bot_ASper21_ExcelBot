@@ -1,43 +1,36 @@
-# Deploying to Render.com ☁️
+# Deploying to Render.com (Webhook Mode) 🚀
 
-Render is a modern cloud provider. The free tier works well, but it "spins down" (sleeps) after 15 minutes of inactivity. To prevent this, we've added a special "keep-alive" web server to your bot.
+This guide sets up your bot using **Webhooks**. This is better than Polling for Render because:
+1. It solves the "Conflict" errors.
+2. It wakes up your bot automatically when a message arrives (no need for UptimeRobot!).
+3. It's more stable.
 
-## Step 1: Upload Code to GitHub
-Render pulls code from GitHub, so you need to push your project there first.
-1. Create a new repository on [GitHub](https://github.com).
-2. Upload all your project files (`bot.py`, `database.py`, `keep_alive.py`, `requirements.txt`).
-   *(Do NOT upload `.env`! You will set environment variables directly in Render).*
+## Step 1: Push Code to GitHub
+1. Open your terminal in this project.
+2. Run these commands to update your code on GitHub:
+   ```bash
+   git add .
+   git commit -m "Switch to Webhook mode"
+   git push
+   ```
 
-## Step 2: Create a Web Service on Render
-1. Go to [dashboard.render.com](https://dashboard.render.com/) and log in.
-2. Click **"New +"** and select **"Web Service"**.
-3. Connect your GitHub repository.
-4. **Configure the Service:**
-   - **Name**: `asper21-bot` (or anything you like)
-   - **Region**: Closest to you (e.g., Singapore, Oregon)
-   - **Branch**: `main` (or `master`)
-   - **Runtime**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `python bot.py`
-   - **Instance Type**: `Free`
+## Step 2: Configure Render
+1. Go to your [Render Dashboard](https://dashboard.render.com/).
+2. Select your `asper21-bot` service.
+3. Go to **Settings**.
+4. Scroll to **Environment Variables**.
+5. Add a new variable:
+   - **Key**: `WEBHOOK_URL`
+   - **Value**: `https://your-service-name.onrender.com`
+   *(Copy this URL from the top of your Render dashboard. Do NOT include a trailing slash `/`)*.
 
-## Step 3: Add Environment Variables
-1. Scroll down to the **"Environment Variables"** section.
-2. Add the following keys and values (copy from your `.env` file):
-   - Key: `TELEGRAM_BOT_TOKEN` | Value: `Your_Token_Here`
-   - Key: `ADMIN_ID`           | Value: `Your_ID_Here`
+## Step 3: Deploy
+1. Click **Manual Deploy** -> **Deploy latest commit**.
+2. Wait for it to finish.
+3. Your bot is now live!
 
-## Step 4: Deploy & Keep Alive
-1. Click **"Create Web Service"**.
-2. Render will build your bot. Wait for it to finish.
-3. Once deployed, you will see a URL like `https://asper21-bot.onrender.com` at the top.
-4. **Important**: Because this is a free "Web Service", Render will put it to sleep if nobody visits that URL.
-5. **The Fix**: Create a free account at [UptimeRobot](https://uptimerobot.com/).
-   - Click "Add New Monitor".
-   - Type: `HTTP(s)`
-   - Friendly Name: `My Bot`
-   - URL: `https://asper21-bot.onrender.com` (Your Render URL)
-   - Monitoring Interval: `5 minutes`
-   - Click "Create Monitor".
-
-**Done!** UptimeRobot will ping your bot every 5 minutes, keeping it awake 24/7 on Render's free tier. 🚀
+## How it works
+- When you set `WEBHOOK_URL`, the bot starts a web server listening on port 8080 (or whatever Render assigns).
+- It tells Telegram: "Send all messages to `https://your-app.onrender.com/YOUR_TOKEN`".
+- Telegram pushes messages to your bot.
+- If the bot is sleeping, Render wakes it up instantly.

@@ -15,7 +15,6 @@ from telegram.ext import (
 )
 from dotenv import load_dotenv
 import database
-from keep_alive import keep_alive
 
 # Load environment variables
 load_dotenv()
@@ -410,12 +409,24 @@ def main() -> None:
 
     # Run the bot
     print("Bot is starting...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    
+    # Check if we are running on Render (WEBHOOK_URL env var set)
+    webhook_url = os.getenv("WEBHOOK_URL")
+    
+    if webhook_url:
+        port = int(os.environ.get("PORT", 8080))
+        print(f"Starting Webhook on port {port}...")
+        application.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path=TOKEN,
+            webhook_url=f"{webhook_url}/{TOKEN}"
+        )
+    else:
+        print("Starting Polling...")
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
-    # Start the keep-alive web server for Render
-    keep_alive()
-    
     # Fix for asyncio event loop issue in some environments/Python versions
     if sys.platform == 'win32':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())

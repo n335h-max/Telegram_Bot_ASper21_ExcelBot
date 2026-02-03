@@ -426,8 +426,7 @@ def main() -> None:
             listen="0.0.0.0",
             port=port,
             url_path=TOKEN,
-            webhook_url=f"{webhook_url}/{TOKEN}",
-            health_check_path="/"
+            webhook_url=f"{webhook_url}/{TOKEN}"
         )
     else:
         print("Starting Polling...")

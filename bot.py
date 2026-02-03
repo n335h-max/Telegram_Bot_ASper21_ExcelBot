@@ -3,6 +3,8 @@ import os
 import asyncio
 import sys
 import random
+import tornado.web
+import tornado.escape
 from html import escape
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
@@ -422,12 +424,42 @@ def main() -> None:
     if webhook_url:
         port = int(os.environ.get("PORT", 8080))
         print(f"Starting Webhook on port {port}...")
-        application.run_webhook(
-            listen="0.0.0.0",
-            port=port,
-            url_path=TOKEN,
-            webhook_url=f"{webhook_url}/{TOKEN}"
-        )
+        
+        # Define Tornado handlers
+        class HealthHandler(tornado.web.RequestHandler):
+            def get(self):
+                self.write("OK")
+                self.set_status(200)
+
+        class WebhookHandler(tornado.web.RequestHandler):
+            async def post(self):
+                try:
+                    json_data = tornado.escape.json_decode(self.request.body)
+                    update = Update.de_json(json_data, application.bot)
+                    await application.process_update(update)
+                    self.write("OK")
+                except Exception as e:
+                    logger.error(f"Error in webhook: {e}")
+                    self.set_status(500)
+
+        async def run_server():
+            await application.initialize()
+            await application.start()
+            await application.bot.set_webhook(f"{webhook_url}/{TOKEN}")
+            
+            app = tornado.web.Application([
+                (r"/", HealthHandler),
+                (r"/" + TOKEN, WebhookHandler),
+            ])
+            app.listen(port)
+            print("Webhook Server Running...")
+            # Keep running
+            await asyncio.Event().wait()
+        
+        # Get existing loop or create new one to run the server
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(run_server())
+
     else:
         print("Starting Polling...")
         application.run_polling(allowed_updates=Update.ALL_TYPES)

@@ -142,6 +142,8 @@ async def handle_delete_callback(update: Update, context: ContextTypes.DEFAULT_T
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show admin controls."""
     user_id = str(update.effective_user.id)
+    logger.info(f"Admin command attempted by user_id: {user_id}. Expected ADMIN_ID: {ADMIN_ID}")
+    
     if user_id != ADMIN_ID:
         # Ignore unauthorized users
         return

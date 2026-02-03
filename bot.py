@@ -3,6 +3,7 @@ import os
 import asyncio
 import sys
 import random
+from html import escape
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     Application,
@@ -62,13 +63,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
     await update.message.reply_text(
-        "📚 *ASper21_ExcelBot Help*\n\n"
-        "*/upload* - Share a new note (PDF, Image, etc.)\n"
-        "*/browse* - Browse notes by subject\n"
-        "*/search [keyword]* - Search notes by title or subject\n"
-        "*/my_notes* - See and delete your own shared notes\n"
-        "*/cancel* - Stop the current upload process",
-        parse_mode="Markdown"
+        "📚 <b>ASper21_ExcelBot Help</b>\n\n"
+        "<b>/upload</b> - Share a new note (PDF, Image, etc.)\n"
+        "<b>/browse</b> - Browse notes by subject\n"
+        "<b>/search [keyword]</b> - Search notes by title or subject\n"
+        "<b>/my_notes</b> - See and delete your own shared notes\n"
+        "<b>/cancel</b> - Stop the current upload process",
+        parse_mode="HTML"
     )
 
 # --- Search Functionality ---
@@ -76,7 +77,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def search_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Search for notes by keyword."""
     if not context.args:
-        await update.message.reply_text("Please provide a keyword to search for. Example: `/search cell`", parse_mode="Markdown")
+        await update.message.reply_text("Please provide a keyword to search for. Example: <code>/search cell</code>", parse_mode="HTML")
         return
 
     query = " ".join(context.args)
@@ -104,15 +105,17 @@ async def my_notes_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await update.message.reply_text("You haven't uploaded any notes yet. Use /upload to start sharing!")
         return
 
-    text = "📂 *Your Uploaded Notes:*\n\n"
+    text = "📂 <b>Your Uploaded Notes:</b>\n\n"
     keyboard = []
     for note in notes:
         note_id, title, subject, _ = note
-        text += f"• {title} ({subject})\n"
+        safe_title = escape(title)
+        safe_subject = escape(subject)
+        text += f"• {safe_title} ({safe_subject})\n"
         keyboard.append([InlineKeyboardButton(f"🗑 Delete '{title}'", callback_data=f"del_{note_id}")])
     
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode="HTML")
 
 async def handle_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle note deletion."""
@@ -146,13 +149,13 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_count, note_count = database.get_stats()
     
     await update.message.reply_text(
-        "🕵️‍♂️ *Admin Dashboard*\n\n"
+        "🕵️‍♂️ <b>Admin Dashboard</b>\n\n"
         f"👥 Total Users: {user_count}\n"
         f"📄 Total Notes: {note_count}\n\n"
         "Commands:\n"
         "/broadcast [message] - Send message to all users\n"
         "/delete_note [id] - Force delete a note by ID",
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
 
 async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -166,6 +169,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return
 
     message = " ".join(context.args)
+    safe_message = escape(message)
     users = database.get_all_users()
     
     success_count = 0
@@ -173,7 +177,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     
     for uid in users:
         try:
-            await context.bot.send_message(chat_id=uid, text=f"📢 *Announcement:*\n\n{message}", parse_mode="Markdown")
+            await context.bot.send_message(chat_id=uid, text=f"📢 <b>Announcement:</b>\n\n{safe_message}", parse_mode="HTML")
             success_count += 1
         except Exception as e:
             logger.warning(f"Failed to send to {uid}: {e}")

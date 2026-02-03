@@ -2,7 +2,7 @@
 
 This guide sets up your bot using **Webhooks**. This is better than Polling for Render because:
 1. It solves the "Conflict" errors.
-2. It wakes up your bot automatically when a message arrives (no need for UptimeRobot!).
+2. It wakes up your bot automatically when a message arrives.
 3. It's more stable.
 
 ## Step 1: Push Code to GitHub
@@ -10,7 +10,7 @@ This guide sets up your bot using **Webhooks**. This is better than Polling for 
 2. Run these commands to update your code on GitHub:
    ```bash
    git add .
-   git commit -m "Switch to Webhook mode"
+   git commit -m "Add keep alive health check and fix admin command"
    git push
    ```
 
@@ -25,9 +25,20 @@ This guide sets up your bot using **Webhooks**. This is better than Polling for 
    *(Copy this URL from the top of your Render dashboard. Do NOT include a trailing slash `/`)*.
 
 ## Step 3: Deploy
-1. Click **Manual Deploy** -> **Deploy latest commit**.
+1. Click **Manual Deploy** -> **Clear Build Cache & Deploy** (Important to update dependencies!).
 2. Wait for it to finish.
 3. Your bot is now live!
+
+## ⚡ Optional: Prevent Sleeping (Keep Alive)
+Render Free Tier puts your bot to sleep after 15 minutes of inactivity. The first message after sleep might take 30-50 seconds to process.
+To prevent this delay (keep it "hot"), use a free pinger:
+1. Create a free account on [UptimeRobot](https://uptimerobot.com/).
+2. Create a new monitor:
+   - **Type**: HTTP(s)
+   - **Friendly Name**: My Bot
+   - **URL**: `https://your-service-name.onrender.com/` (Your Render URL)
+   - **Interval**: 5 minutes
+3. This will ping your bot every 5 minutes. The bot will respond "OK" and stay awake!
 
 ## Troubleshooting
 
@@ -42,8 +53,7 @@ This means you are still running the bot locally OR Polling mode is still active
 - Ensure `WEBHOOK_URL` is set in Environment Variables.
 - Stop any local instances of the bot.
 
-## How it works
-- When you set `WEBHOOK_URL`, the bot starts a web server listening on port 8080 (or whatever Render assigns).
-- It tells Telegram: "Send all messages to `https://your-app.onrender.com/YOUR_TOKEN`".
-- Telegram pushes messages to your bot.
-- If the bot is sleeping, Render wakes it up instantly.
+### "BadRequest: Can't parse entities..."
+This usually happens if your code is outdated.
+- We fixed this by ensuring `parse_mode="HTML"` is used correctly in the admin command.
+- Deploy the latest code to fix it.

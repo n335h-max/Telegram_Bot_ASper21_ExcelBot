@@ -29,6 +29,19 @@ This guide sets up your bot using **Webhooks**. This is better than Polling for 
 2. Wait for it to finish.
 3. Your bot is now live!
 
+## Troubleshooting
+
+### "RuntimeError: To use start_webhook..."
+If you see this error, it means Render is using an old version of the dependencies.
+1. Go to your Service in Render.
+2. Click **Manual Deploy** -> **Clear Build Cache & Deploy**.
+3. This forces Render to re-install all libraries (including the missing `tornado`).
+
+### "Conflict: terminated by other getUpdates request"
+This means you are still running the bot locally OR Polling mode is still active.
+- Ensure `WEBHOOK_URL` is set in Environment Variables.
+- Stop any local instances of the bot.
+
 ## How it works
 - When you set `WEBHOOK_URL`, the bot starts a web server listening on port 8080 (or whatever Render assigns).
 - It tells Telegram: "Send all messages to `https://your-app.onrender.com/YOUR_TOKEN`".

@@ -431,6 +431,9 @@ def main() -> None:
                 self.write("OK")
                 self.set_status(200)
 
+            def head(self):
+                self.set_status(200)
+
         class WebhookHandler(tornado.web.RequestHandler):
             async def post(self):
                 try:

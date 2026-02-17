@@ -46,14 +46,14 @@ ALLOWED_SUBJECTS = [
 database.init_db()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message when the command /start is issued."""
     user = update.effective_user
-    # Add user to database
     database.add_user(user.id, user.full_name)
     
     await update.message.reply_html(
         rf"Hi {user.mention_html()}! Welcome to ASper21_ExcelBot. 📚"
         "\n\nYou can upload your notes or browse notes shared by others."
+        "\n\nQuick guide:"
+        "\n/about - Learn how to use all main commands"
         "\n\nCommands:"
         "\n/upload - Share a new note"
         "\n/browse - View available notes"
@@ -63,14 +63,43 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message when the command /help is issued."""
     await update.message.reply_text(
         "📚 <b>ASper21_ExcelBot Help</b>\n\n"
         "<b>/upload</b> - Share a new note (PDF, Image, etc.)\n"
         "<b>/browse</b> - Browse notes by subject\n"
         "<b>/search [keyword]</b> - Search notes by title or subject\n"
         "<b>/my_notes</b> - See and delete your own shared notes\n"
-        "<b>/cancel</b> - Stop the current upload process",
+        "<b>/cancel</b> - Stop the current upload process\n"
+        "<b>/about</b> - Step-by-step guide on how to use the bot",
+        parse_mode="HTML"
+    )
+
+async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        "ℹ️ <b>About ASper21_ExcelBot</b>\n\n"
+        "This bot helps students share and browse notes for:\n"
+        "• BIOLOGY II\n"
+        "• CHEMISTRY II\n"
+        "• PHYSICS II\n"
+        "• MATHEMATICS II\n"
+        "• AGRICULTURE II\n\n"
+        "<b>How to upload a note</b>\n"
+        "1. Type <code>/upload</code>.\n"
+        "2. Send your file (PDF, image, or document).\n"
+        "3. Enter a short title for the note.\n"
+        "4. Choose the correct subject from the buttons.\n"
+        "Your note is then saved and shared with others.\n\n"
+        "<b>How to browse notes</b>\n"
+        "• Type <code>/browse</code> and pick a subject.\n"
+        "• Tap on a note to receive the file.\n\n"
+        "<b>How to search notes</b>\n"
+        "• Type <code>/search keyword</code>\n"
+        "  Example: <code>/search cell</code>\n"
+        "• Tap a result to get the note.\n\n"
+        "<b>How to manage your uploads</b>\n"
+        "• Type <code>/my_notes</code> to see what you uploaded.\n"
+        "• Use the 🗑 buttons to delete your own notes.\n\n"
+        "You can always use <code>/help</code> to quickly see all commands.",
         parse_mode="HTML"
     )
 
@@ -401,6 +430,7 @@ def main() -> None:
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("about", about_command))
     application.add_handler(CommandHandler("browse", browse_subjects))
     application.add_handler(CommandHandler("search", search_command))
     application.add_handler(CommandHandler("my_notes", my_notes_command))
